@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package api.user.v1;
+
+option go_package = "user/api/user/v1;v1";
+
+service User {
+	rpc CreateUser (CreateUserInfo) returns (UserInfoResponse);
+	// rpc UpdateUser (UpdateUserRequest) returns (UpdateUserReply);
+	// rpc DeleteUser (DeleteUserRequest) returns (DeleteUserReply);
+	// rpc GetUser (GetUserRequest) returns (GetUserReply);
+	// rpc ListUser (ListUserRequest) returns (ListUserReply);
+}
+
+// message CreateUserRequest {}
+// message CreateUserReply {}
+
+// message UpdateUserRequest {}
+// message UpdateUserReply {}
+
+// message DeleteUserRequest {}
+// message DeleteUserReply {}
+
+// message GetUserRequest {}
+// message GetUserReply {}
+
+// message ListUserRequest {}
+// message ListUserReply {}
+
+message CreateUserInfo {
+  string nickName = 1;
+  string password = 2;
+  string mobile = 3;
+}
+
+message UserInfoResponse {
+  int64 id = 1;
+  string password = 2;
+  string mobile = 3;
+  string nickName = 4;
+  int64 birthday = 5;
+  string gender = 6;
+  int32 role = 7;
+}
