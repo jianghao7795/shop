@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha512"
 	"fmt"
+	"strings"
 	"time"
 
 	"user/internal/biz"
@@ -77,4 +78,120 @@ func encrypt(psd string) string {
 	options := &password.Options{SaltLen: 16, Iterations: 10000, KeyLen: 32, HashFunction: sha512.New}
 	salt, encodedPwd := password.Encode(psd, options)
 	return fmt.Sprintf("$pbkdf2-sha512$%s$%s", salt, encodedPwd)
+}
+
+// ModelToResponse 转换 user 表中所有字段的值
+func modelToResponse(user User) biz.User {
+	userInfoRsp := biz.User{
+		ID:        user.ID,
+		Mobile:    user.Mobile,
+		Password:  user.Password,
+		NickName:  user.NickName,
+		Gender:    user.Gender,
+		Role:      user.Role,
+		Birthday:  user.Birthday,
+		CreatedAt: user.CreatedAt,
+	}
+	return userInfoRsp
+}
+
+// ListUser .
+func (r *userRepo) ListUser(ctx context.Context, pageNum, pageSize int) ([]*biz.User, int, error) {
+	var users []User
+	result := r.data.db.Find(&users)
+	if result.Error != nil {
+		return nil, 0, result.Error
+	}
+	total := int(result.RowsAffected)
+	r.data.db.Scopes(paginate(pageNum, pageSize)).Find(&users)
+	rv := make([]*biz.User, 0)
+	for _, u := range users {
+		rv = append(rv, &biz.User{
+			ID:       u.ID,
+			Mobile:   u.Mobile,
+			Password: u.Password,
+			NickName: u.NickName,
+			Gender:   u.Gender,
+			Role:     u.Role,
+			Birthday: u.Birthday,
+		})
+	}
+	return rv, total, nil
+}
+
+// paginate 分页
+func paginate(page, pageSize int) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		if page == 0 {
+			page = 1
+		}
+
+		switch {
+		case pageSize > 100:
+			pageSize = 100
+		case pageSize <= 0:
+			pageSize = 10
+		}
+
+		offset := (page - 1) * pageSize
+		return db.Offset(offset).Limit(pageSize)
+	}
+}
+
+// UserByMobile .
+func (r *userRepo) UserByMobile(ctx context.Context, mobile string) (*biz.User, error) {
+	var user User
+	result := r.data.db.Where(&User{Mobile: mobile}).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, status.Errorf(codes.NotFound, "用户不存在")
+	}
+	re := modelToResponse(user)
+	return &re, nil
+}
+
+// UpdateUser .
+func (r *userRepo) UpdateUser(ctx context.Context, user *biz.User) (bool, error) {
+	var userInfo User
+	result := r.data.db.Where(&User{ID: user.ID}).First(&userInfo)
+	if result.RowsAffected == 0 {
+		return false, status.Errorf(codes.NotFound, "用户不存在")
+	}
+
+	userInfo.NickName = user.NickName
+	userInfo.Birthday = user.Birthday
+	userInfo.Gender = user.Gender
+
+	res := r.data.db.Save(&userInfo)
+	if res.Error != nil {
+		return false, status.Errorf(codes.Internal, res.Error.Error())
+	}
+
+	return true, nil
+}
+
+// CheckPassword .
+func (r *userRepo) CheckPassword(ctx context.Context, psd, encryptedPassword string) (bool, error) {
+	options := &password.Options{SaltLen: 16, Iterations: 10000, KeyLen: 32, HashFunction: sha512.New}
+	passwordInfo := strings.Split(encryptedPassword, "$")
+	check := password.Verify(psd, passwordInfo[2], passwordInfo[3], options)
+	return check, nil
+}
+
+// GetUserById .
+func (r *userRepo) GetUserById(ctx context.Context, Id int64) (*biz.User, error) {
+	var user User
+	result := r.data.db.Where(&User{ID: Id}).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, status.Errorf(codes.NotFound, "用户不存在")
+	}
+	re := modelToResponse(user)
+	return &re, nil
 }

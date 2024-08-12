@@ -18,6 +18,31 @@ type MockUserRepo struct {
 	recorder *MockUserRepoMockRecorder
 }
 
+// CheckPassword implements biz.UserRepo.
+func (m *MockUserRepo) CheckPassword(ctx context.Context, password string, encryptedPassword string) (bool, error) {
+	panic("unimplemented")
+}
+
+// GetUserById implements biz.UserRepo.
+func (m *MockUserRepo) GetUserById(ctx context.Context, id int64) (*biz.User, error) {
+	panic("unimplemented")
+}
+
+// ListUser implements biz.UserRepo.
+func (m *MockUserRepo) ListUser(ctx context.Context, pageNum int, pageSize int) ([]*biz.User, int, error) {
+	panic("unimplemented")
+}
+
+// UpdateUser implements biz.UserRepo.
+func (m *MockUserRepo) UpdateUser(context.Context, *biz.User) (bool, error) {
+	panic("unimplemented")
+}
+
+// UserByMobile implements biz.UserRepo.
+func (m *MockUserRepo) UserByMobile(ctx context.Context, mobile string) (*biz.User, error) {
+	panic("unimplemented")
+}
+
 // MockUserRepoMockRecorder is the mock recorder for MockUserRepo.
 type MockUserRepoMockRecorder struct {
 	mock *MockUserRepo

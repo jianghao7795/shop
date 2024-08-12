@@ -7,6 +7,7 @@ require (
 	github.com/go-kratos/kratos/contrib/registry/consul/v2 v2.0.0-20240725023016-d6fca5e3e984
 	github.com/go-kratos/kratos/v2 v2.8.0
 	github.com/golang/mock v1.6.0
+	github.com/golang/protobuf v1.5.4
 	github.com/google/wire v0.6.0
 	github.com/hashicorp/consul/api v1.29.2
 	github.com/onsi/ginkgo v1.16.5
